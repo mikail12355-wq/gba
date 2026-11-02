@@ -1,0 +1,79 @@
+<section>
+  <div class="wrap">
+    <div class="ban">
+      <div><div class="lab">Nach TKO</div><strong>30<small>Tage</small></strong></div>
+      <div><div class="lab">Nach KO</div><strong>90<small>Tage</small></strong></div>
+      <div>
+        <div class="lab">Wo stehen die Sperren?</div>
+        <p>Laufende Sperren führt die GBA bis auf Weiteres im Boxerprofil auf boxrec.com. Suchen Sie dort nach Name oder Boxrec-ID.</p>
+        <a class="btn btn-ghost" href="https://boxrec.com">Auf boxrec.com prüfen ↗</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="head">
+      <div>
+        <div class="eyebrow">Rechner</div>
+        <h2>Wann endet die Sperre?</h2>
+        <p>Kampfdatum und Ergebnis wählen. Der Rechner zählt die Sperrfrist ab dem Kampftag.</p>
+      </div>
+    </div>
+    <form class="calc" id="calc" novalidate>
+      <div>
+        <label for="kampfdatum">Kampfdatum</label>
+        <input type="date" id="kampfdatum" value="2026-11-01" required>
+      </div>
+      <div>
+        <label for="ergebnis">Niederlage durch</label>
+        <select id="ergebnis">
+          <option value="30">TKO (30 Tage)</option>
+          <option value="90">KO (90 Tage)</option>
+        </select>
+      </div>
+      <div>
+        <label for="ende">Sperre läuft bis</label>
+        <output id="ende" for="kampfdatum ergebnis"><b>–</b></output>
+      </div>
+      <p class="hint">Nur zur Orientierung. Verbindlich ist der Eintrag auf boxrec.com bzw. die Auskunft der GBA.</p>
+    </form>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="head">
+      <div>
+        <div class="eyebrow">Sperrliste</div>
+        <h2>Aktuell gesperrte Lizenznehmer</h2>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Nr.</th><th>Name</th><th>Boxrec-ID</th><th>Lizenz</th><th>Sperre von – bis</th><th>Bemerkung</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="empty" colspan="6">Die laufenden Sperren stehen bis auf Weiteres im jeweiligen Boxerprofil auf <a href="https://boxrec.com">boxrec.com</a>.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<script>
+(function(){
+  var d=document.getElementById('kampfdatum'), e=document.getElementById('ergebnis'), out=document.getElementById('ende');
+  function calc(){
+    if(!d.value){out.innerHTML='<b>–</b>';return;}
+    var p=d.value.split('-'), t=new Date(+p[0],+p[1]-1,+p[2]);
+    t.setDate(t.getDate()+(+e.value));
+    out.innerHTML='<b>'+t.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'})+'</b>';
+  }
+  d.addEventListener('input',calc); e.addEventListener('change',calc);
+  document.getElementById('calc').addEventListener('submit',function(ev){ev.preventDefault();});
+  calc();
+})();
+</script>

@@ -1,0 +1,11 @@
+# Erzeugte Dateien (mit "python3 build.py" neu bauen)
+site/
+build/
+
+# Admin-Zugang (Passwort-Hash) nie ins Repo
+src/php/lib/zugang.php
+
+# Lokale Einstellungen und Altlasten
+.claude/
+.DS_Store
+gba-startseite.html
