@@ -1,0 +1,9 @@
+{
+    "hinweis": "Verschlüsselter GitHub-Schlüssel für den Admin-Bereich. Neu erzeugen mit: php admin-einrichten.php",
+    "repo": "mikail12355-wq/gba",
+    "branch": "main",
+    "iter": 600000,
+    "salt": "V6GPaRwyKPti/4HcjGYSEQ==",
+    "iv": "8UhVjTFfAw+4nIVy",
+    "daten": "JiZBlq7cOjYY95lYfyb7muFOK7gzMCLy/pE3mgWxQH/nIldKAjpE+ecsjE7O/yvDp+YqG6JGeIlvRmJc635SV6S1F0vkCEOnuGC3ElOAECpt1+KGE5ASFVSpj6BP33wLDfv4eJYVsO5yBfxJfw=="
+}
