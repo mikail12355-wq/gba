@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Mitteilungen verwalten · GBA</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../styles.css">
+<style>
+.admin{padding-block:40px 80px}
+.admin h1{font-size:clamp(34px,5vw,48px);margin:0}
+.box{background:var(--surface);border:1px solid var(--line);padding:28px}
+.login{max-width:420px;margin:40px auto}
+.login h1{margin-bottom:24px}
+.felder{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+.feld{display:flex;flex-direction:column;gap:6px;min-width:0}
+.feld.breit{grid-column:1/-1}
+.feld label{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.feld small{color:var(--muted);font-size:14px;text-transform:none;letter-spacing:0;font-weight:400}
+.feld input[type=text],.feld input[type=date],.feld input[type=password],.feld select,.feld textarea{width:100%;font:inherit;padding:11px 12px;border:1.5px solid var(--line);background:var(--paper);color:var(--ink);border-radius:2px}
+.feld textarea{min-height:260px;line-height:1.6;resize:vertical}
+.feld input:focus,.feld select:focus,.feld textarea:focus{border-color:var(--gold-ink);outline:none}
+.datei{border:1.5px dashed var(--line);padding:14px;display:flex;flex-direction:column;gap:8px}
+.check{display:flex;gap:8px;align-items:center;font-size:15px}
+.aktionen{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:24px}
+.btn-line{border-color:var(--line);color:var(--ink);background:transparent;cursor:pointer}
+.btn-line:hover{border-color:var(--gold-ink);color:var(--gold-ink)}
+button.btn{cursor:pointer}
+button.btn[disabled]{opacity:.6;cursor:progress}
+.btn-rot{background:transparent;border-color:var(--red);color:var(--red);cursor:pointer}
+.meldung{background:var(--tint);padding:14px 18px;margin-bottom:24px;border-left:4px solid var(--gold-ink)}
+.fehler{border:1.5px solid var(--red);color:var(--red);padding:14px 18px;margin-bottom:24px}
+.zeilen{list-style:none;margin:0;padding:0;background:var(--surface);border:1px solid var(--line)}
+.zeilen li{display:grid;grid-template-columns:110px minmax(0,1fr) auto;gap:18px;align-items:center;padding:16px 20px;border-top:1px solid var(--line)}
+.zeilen li:first-child{border-top:0}
+.zeilen time{font-variant-numeric:tabular-nums;color:var(--muted)}
+.zeilen b{display:block}
+.zeilen .tag{margin-top:6px}
+.knoepfe{display:flex;gap:8px;flex-wrap:wrap}
+.knoepfe .btn{padding:8px 14px;font-size:15px}
+.kopf{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:24px}
+.frage{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:15px;color:var(--red)}
+.vorschau{max-width:180px;display:block}
+@media (max-width:700px){.felder{grid-template-columns:1fr}.zeilen li{grid-template-columns:1fr;gap:8px}}
+</style>
+</head>
+<body>
+<div class="flag" aria-hidden="true"><i style="background:#111"></i><i style="background:#d00"></i><i style="background:#ffce00"></i></div>
+<header>
+  <div class="wrap bar">
+    <a class="logo" href="../"><b>GBA<span>.</span></b><small>Admin-Bereich<br>Mitteilungen</small></a>
+    <button class="btn btn-ghost" id="abmelden" type="button" hidden>Abmelden</button>
+  </div>
+</header>
+
+<main class="wrap admin">
+  <div class="meldung" id="meldung" role="status" hidden></div>
+
+  <!-- Anmelden -->
+  <section id="ansicht-login" class="box login" style="padding-block:28px">
+    <h1>Anmelden</h1>
+    <div class="fehler" id="login-fehler" role="alert" hidden></div>
+    <form id="login-form">
+      <div class="feld"><label for="passwort">Passwort</label><input type="password" id="passwort" autocomplete="current-password" required autofocus></div>
+      <div class="aktionen"><button class="btn btn-gold" type="submit" id="login-knopf">Anmelden</button></div>
+    </form>
+  </section>
+
+  <!-- Übersicht -->
+  <section id="ansicht-liste" hidden style="padding-top:0">
+    <div class="kopf">
+      <h1>Mitteilungen</h1>
+      <div class="knoepfe">
+        <a class="btn btn-line" href="../aktuelles.html">Seite ansehen</a>
+        <button class="btn btn-gold" type="button" id="neu">Neuer Beitrag</button>
+      </div>
+    </div>
+    <p class="note" id="liste-laedt">Mitteilungen werden geladen …</p>
+    <ul class="zeilen" id="liste" hidden></ul>
+  </section>
+
+  <!-- Formular -->
+  <section id="ansicht-formular" hidden style="padding-top:0">
+    <div class="kopf">
+      <h1 id="formular-titel">Neuer Beitrag</h1>
+      <button class="btn btn-line" type="button" data-zurueck>Zur Übersicht</button>
+    </div>
+    <div class="fehler" id="formular-fehler" role="alert" hidden></div>
+    <form class="box" id="formular" novalidate>
+      <div class="felder">
+        <div class="feld breit"><label for="titel">Titel</label><input type="text" id="titel" maxlength="200"></div>
+        <div class="feld"><label for="datum">Datum</label><input type="date" id="datum"></div>
+        <div class="feld"><label for="etikett">Etikett</label>
+          <select id="etikett">
+            <option value="">— kein Etikett —</option>
+            <option value="neu">Neu</option>
+            <option value="gilt">Gilt weiterhin</option>
+            <option value="beschluss">Vorstandsbeschluss</option>
+            <option value="info">Information</option>
+          </select>
+        </div>
+        <div class="feld breit"><label for="rubrik">Rubrik <small>(optional)</small></label><input type="text" id="rubrik" placeholder="boxrec.com · Kostenumlage"></div>
+        <div class="feld breit"><label for="text">Text</label>
+          <textarea id="text"></textarea>
+          <small>Leerzeile = neuer Absatz. Zeilen mit „- “ am Anfang werden zur Aufzählung. **Wort** wird fett.</small>
+        </div>
+        <div class="feld breit"><label for="unterschrift">Unterschrift <small>(optional)</small></label><input type="text" id="unterschrift"></div>
+        <div class="feld"><label for="pdf">PDF-Anhang <small>(optional, max. 10 MB)</small></label>
+          <div class="datei">
+            <div id="pdf-aktuell" hidden><a id="pdf-link" href="#">Aktueller Anhang</a>
+              <label class="check"><input type="checkbox" id="pdf-entfernen"> Anhang entfernen</label></div>
+            <input type="file" id="pdf" accept="application/pdf">
+            <input type="text" id="pdf-name" placeholder="Linktext, z. B. Beschluss als PDF" aria-label="Linktext für den Anhang">
+          </div>
+        </div>
+        <div class="feld"><label for="bild">Foto <small>(optional, JPG/PNG/WebP, max. 8 MB)</small></label>
+          <div class="datei">
+            <div id="bild-aktuell" hidden><img class="vorschau" id="bild-vorschau" alt="">
+              <label class="check"><input type="checkbox" id="bild-entfernen"> Foto entfernen</label></div>
+            <input type="file" id="bild" accept="image/jpeg,image/png,image/webp">
+            <input type="text" id="bild-alt" placeholder="Was ist zu sehen? (für Screenreader)" aria-label="Bildbeschreibung">
+          </div>
+        </div>
+      </div>
+      <div class="aktionen">
+        <button class="btn btn-gold" type="submit" id="speichern">Veröffentlichen</button>
+        <button class="btn btn-line" type="button" data-zurueck>Abbrechen</button>
+      </div>
+    </form>
+  </section>
+</main>
+<script src="admin.js"></script>
+</body>
+</html>

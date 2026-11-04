@@ -4,6 +4,9 @@ Aufruf:  python3 build.py
 Ergebnis: Ordner site/ (fertige Webseite mit PHP-Backend) und build/preview/ (statische Vorschau für Claude).
 """
 from pathlib import Path
+import html as _html
+import json
+import re
 import shutil
 
 ROOT = Path(__file__).parent
@@ -93,6 +96,97 @@ FOOTER = """<footer id="kontakt-fuss">
 <script src="site.js"></script>"""
 
 
+# ---------- Mitteilungen aus src/data/beitraege.json (statische Fassung) ----------
+# Gleiches Textformat wie im PHP-Backend: Leerzeile = Absatz, "- " = Liste, **fett**.
+
+ETIKETTEN = {"neu": "Neu", "gilt": "Gilt weiterhin", "beschluss": "Vorstandsbeschluss", "info": "Information"}
+ALERT_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4l9 16H3z"/><path d="M12 10v4.5M12 17.2v.3"/></svg>'
+
+
+def esc(s):
+    return _html.escape(s or "", quote=True)
+
+
+def inline_html(s):
+    return re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", esc(s))
+
+
+def text_html(text):
+    out = ""
+    for block in re.split(r"\n\s*\n", (text or "").replace("\r\n", "\n").strip()):
+        lines = [l.strip() for l in block.split("\n") if l.strip()]
+        if not lines:
+            continue
+        if all(l.startswith("- ") for l in lines):
+            out += "<ul>" + "".join(f"<li>{inline_html(l[2:])}</li>" for l in lines) + "</ul>"
+        else:
+            out += "<p>" + "<br>".join(inline_html(l) for l in lines) + "</p>"
+    return out
+
+
+def kurztext(text, maxlen=220):
+    first = re.split(r"\n\s*\n", (text or "").replace("\r\n", "\n").strip())[0]
+    first = re.sub(r"\s+", " ", re.sub(r"^- ", "", first.replace("**", ""), flags=re.M)).strip()
+    return first if len(first) <= maxlen else first[:maxlen].rstrip() + " …"
+
+
+def datum_de(iso):
+    y, m, d = iso.split("-")
+    return f"{d}.{m}.{y}"
+
+
+def etikett_html(key):
+    if key not in ETIKETTEN:
+        return ""
+    return f'<span class="tag{"" if key == "neu" else " old"}">{esc(ETIKETTEN[key])}</span>'
+
+
+def beitraege():
+    data = json.loads((SRC / "data" / "beitraege.json").read_text(encoding="utf-8"))
+    return sorted(data["beitraege"], key=lambda b: (b["datum"], b["id"]), reverse=True)
+
+
+def beitrag_html(b):
+    o = f'<article class="entry" id="beitrag-{int(b["id"])}">'
+    o += f'<div class="when"><time datetime="{esc(b["datum"])}">{datum_de(b["datum"])}</time>{etikett_html(b.get("etikett", ""))}</div><div>'
+    if b.get("rubrik"):
+        o += f'<div class="eyebrow">{esc(b["rubrik"])}</div>'
+    o += f'<h2>{esc(b["titel"])}</h2>'
+    if b.get("bild"):
+        o += f'<figure class="photo entry-photo"><img src="uploads/{esc(b["bild"])}" alt="{esc(b.get("bild_alt"))}" loading="lazy"></figure>'
+    o += text_html(b["text"])
+    if b.get("pdf"):
+        o += (f'<a class="attachment" href="uploads/{esc(b["pdf"])}" type="application/pdf"><span class="pdf">PDF</span> '
+              f'{esc(b.get("pdf_name") or "Anhang öffnen")}</a>')
+    if b.get("unterschrift"):
+        o += f'<p class="sig">{esc(b["unterschrift"])}</p>'
+    return o + "</div></article>"
+
+
+def fill_posts(body):
+    posts = beitraege()
+    if "<!--BEITRAEGE_LISTE-->" in body:
+        liste = "\n".join(beitrag_html(b) for b in posts) or '<p class="note">Zurzeit gibt es keine Mitteilungen.</p>'
+        body = body.replace("<!--BEITRAEGE_LISTE-->", liste)
+    if "<!--BEITRAEGE_START-->" in body:
+        cards = "".join(
+            f'<article class="post">{etikett_html(b.get("etikett", ""))}'
+            f'<time datetime="{esc(b["datum"])}">{datum_de(b["datum"])}</time>'
+            f'<h3>{esc(b["titel"])}</h3><p>{esc(kurztext(b["text"]))}</p>'
+            f'<a class="sig" href="aktuelles.html#beitrag-{int(b["id"])}">Weiterlesen →</a></article>'
+            for b in posts[:2])
+        body = body.replace("<!--BEITRAEGE_START-->", cards)
+    if "<!--BEITRAG_SCHNELLZUGRIFF-->" in body:
+        card = ""
+        if posts:
+            n = posts[0]
+            neu = n.get("etikett") == "neu"
+            card = (f'<a class="task{" alert" if neu else ""}" href="aktuelles.html#beitrag-{int(n["id"])}">{ALERT_ICON}'
+                    f'<b>{"Neu" if neu else "Aktuell"} · {datum_de(n["datum"])}</b><span>{esc(n["titel"])}</span></a>')
+        body = body.replace("<!--BEITRAG_SCHNELLZUGRIFF-->", card)
+    return body
+
+
 def nav_items(active):
     rows = []
     for key, label in NAV:
@@ -103,7 +197,7 @@ def nav_items(active):
 
 def render(name, standalone, source=None):
     title, active, hero = PAGES[name]
-    body = (SRC / "pages" / (source or name)).read_text(encoding="utf-8")
+    body = fill_posts((SRC / "pages" / (source or name)).read_text(encoding="utf-8"))
     head = HEAD.format(title=title)
     parts = [HEADER.format(items=nav_items(active))]
     if hero:
@@ -144,6 +238,9 @@ def build_preview():
     """Statische Vorschau für den Claude-Link (dort läuft kein PHP)."""
     prev = ROOT / "build" / "preview"
     copy_assets(prev)
+    # Admin-Seite ohne Server (speichert über GitHub) und hochgeladene Dateien
+    shutil.copytree(SRC / "static-admin", prev / "admin", dirs_exist_ok=True)
+    shutil.copytree(SRC / "uploads", prev / "uploads", dirs_exist_ok=True)
     (prev / "artifact-index.html").unlink(missing_ok=True)
     # Entwurf mit echten Vereinsdaten: nicht in Suchmaschinen aufnehmen.
     noindex = lambda html: html.replace("<title>", '<meta name="robots" content="noindex, nofollow">\n<title>', 1)

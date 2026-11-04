@@ -87,3 +87,37 @@ php -S localhost:8000 -t site
 ```
 
 Dann http://localhost:8000 öffnen. Die lokale Datenbank liegt in `site/data/` und wird nicht hochgeladen.
+
+## Admin-Bereich auf GitHub Pages (ohne Server)
+
+Auf GitHub Pages läuft kein PHP. Dort gibt es deshalb einen zweiten Admin-Bereich unter `/admin/`, der nur im Browser arbeitet:
+
+- Anmeldung mit **einem Passwort**.
+- Beiträge stehen in `src/data/beitraege.json`, PDFs und Fotos in `src/uploads/`.
+- Beim Speichern schreibt die Admin-Seite die Änderung als Commit ins GitHub-Repo. GitHub Pages baut die Seite danach neu: **nach 1–2 Minuten sichtbar**.
+
+### Einmalig einrichten
+
+1. Auf GitHub einen Zugangsschlüssel erstellen: **Settings → Developer settings → Personal access tokens → Fine-grained tokens → Generate new token**
+   - Repository access: **Only select repositories** → dieses Repo (für beide Fassungen: `gba` und `gba-hell`)
+   - Permissions → Repository permissions → **Contents: Read and write**
+   - Ablaufdatum nach Wunsch (danach neu einrichten)
+2. Im Projektordner ausführen und Schlüssel sowie Admin-Passwort eingeben:
+   ```bash
+   php admin-einrichten.php
+   ```
+3. Veröffentlichen:
+   ```bash
+   git add src/static-admin/zugang.json && git commit -m "Admin-Zugang eingerichtet" && git push
+   ```
+
+Danach: `https://www.mikailoeztuerk.de/gba/admin/` aufrufen und mit dem Passwort anmelden.
+
+### Sicherheit
+
+- Der GitHub-Schlüssel liegt nur **verschlüsselt** im Repo (AES-256, Schlüssel aus dem Passwort abgeleitet mit 600.000 PBKDF2-Runden). Ohne Passwort ist er nutzlos.
+- Weil die verschlüsselte Datei öffentlich ist, kann jemand das Passwort offline durchprobieren. Darum ein **langes Passwort** wählen (z. B. vier zufällige Wörter).
+- Der Schlüssel darf nur die beiden GBA-Repos ändern. Im schlimmsten Fall könnte jemand mit dem Passwort diese Webseiten verändern, nichts anderes.
+- Passwort oder Schlüssel ändern: `php admin-einrichten.php` erneut ausführen, committen und pushen. Den alten Schlüssel auf GitHub löschen.
+
+Wenn du lokal Änderungen machst, vorher `git pull` ausführen, damit du die Beiträge aus dem Admin-Bereich hast.

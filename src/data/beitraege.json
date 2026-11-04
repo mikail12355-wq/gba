@@ -1,0 +1,43 @@
+{
+  "beitraege": [
+    {
+      "id": 1,
+      "datum": "2022-05-06",
+      "titel": "GBA-Tageslizenz für BDB-Lizenznehmer",
+      "rubrik": "Lizenzen · BDB",
+      "etikett": "beschluss",
+      "text": "Der BDB verlangt seit Längerem von GBA-Lizenznehmern auf BDB-Veranstaltungen eine zusätzliche Tageslizenz. Der GBA-Vorstand hat dagegen ohne Erfolg protestiert.\n\nAb sofort erhebt die GBA ebenfalls eine Tageslizenz in Höhe von **40,00 €** für BDB-Lizenznehmer, die eine gültige Lizenzkarte, aber keine Startgenehmigung mitbringen.",
+      "unterschrift": "Der GBA-Vorstand · Jörg Milcke",
+      "pdf": "",
+      "pdf_name": "",
+      "bild": "",
+      "bild_alt": ""
+    },
+    {
+      "id": 2,
+      "datum": "2022-06-14",
+      "titel": "Umlage für die Eintragung bei boxrec.com",
+      "rubrik": "boxrec.com · Kostenumlage",
+      "etikett": "gilt",
+      "text": "Seit dem 27.03.2022 erhebt boxrec.com für jeden von der GBA bestätigten Kampf eine Verwaltungsgebühr von 10 USD zuzüglich Steuern und Gebühren. Die GBA geht dafür in Vorleistung.\n\nBeim Wiegen erhält der Promoter vom GBA-Delegierten einen Umlagebeleg und zahlt **12,00 € pro eingetragenem Kampf** in bar. Die Regelung gilt mit sofortiger Wirkung.",
+      "unterschrift": "Der GBA-Vorstand · Jörg Milcke",
+      "pdf": "",
+      "pdf_name": "",
+      "bild": "",
+      "bild_alt": ""
+    },
+    {
+      "id": 3,
+      "datum": "2026-03-10",
+      "titel": "Jeder Kampf wird auf YouTube aufgezeichnet",
+      "rubrik": "boxrec.com · GBA-Veranstaltungen",
+      "etikett": "neu",
+      "text": "Damit die Eintragungen in der Datenbank boxrec.com gesichert sind, gelten ab sofort zusätzliche Kriterien für alle GBA-Veranstaltungen:\n\n- Jeder Kampf wird vollständig aufgezeichnet und auf YouTube hochgeladen.\n- Das Video darf öffentlich oder nicht öffentlich sein.\n- Der YouTube-Link wird über die GBA an boxrec.com weitergeleitet.",
+      "unterschrift": "Der GBA-Vorstand",
+      "pdf": "",
+      "pdf_name": "",
+      "bild": "",
+      "bild_alt": ""
+    }
+  ]
+}
